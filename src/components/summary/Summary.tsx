@@ -1,7 +1,13 @@
 // Defining a component for the stock summary
 import { useState, useEffect, useRef } from 'react'
 
-// Defining a type for our stock
+// Defining a stock for our API response
+type ApiStock = {
+	code: string,
+	price: number
+}
+
+// Defining a type for our stock summary
 type Stock = {
 	code: string,
 	price: number,
@@ -17,18 +23,16 @@ const Summary = () => {
 	const stockSummaryRef = useRef(stockSummary);
 	stockSummaryRef.current = stockSummary;
 
-	// Define a function for returning the current stock
+	// Define a function for returning the current stock from the stock summary
 	function getCurrentStock(code: string) {
-		let filtered = stockSummaryRef.current.reduce((accumulator: Array<Stock>, currentValue: Stock) => {
-			if (currentValue.code === code) {
-				// Append
-				accumulator.push(currentValue);
-			}
-			return accumulator;
-		}, []);
+		// Retrieve stock summary for the given stock code
+		let filtered = stockSummaryRef.current.filter((currentValue: Stock) => {
+			return (currentValue.code === code);
+		});
+
 		// Check for empty array
 		if (filtered.length === 0) {
-			// return empty stock
+			// Return new empty stock
 			return {
 				code: code,
 				price: 0,
@@ -54,12 +58,12 @@ const Summary = () => {
 					// Else if not valid throw an error
 					throw response;
 				})
-				.then(json => {
-					// console.log(json);
+				.then((json: Array<ApiStock>) => {
 					// Map returned data to our stock summary
-					let formatedStock: Array<Stock> = json.map(function (s: Stock) {
+					let formattedStock: Array<Stock> = json.map(function (s: ApiStock) {
+						// Get current stock from our summary
 						let currentStock: Stock = getCurrentStock(s.code);
-						console.log('currentStock', currentStock);
+						// Format into our stock type
 						let formatted: Stock = {
 							code: s.code,
 							price: s.price,
@@ -70,40 +74,45 @@ const Summary = () => {
 						};
 						return formatted;
 					});
-					setStockSummary(formatedStock);
+					setStockSummary(formattedStock);
 				})
 				// Catch our errors
 				.catch(error => {
 					console.log('Error', error);
-				})
-		}, 5000);
+				});
+		}, 5000 /* Running our effect at 5 second intervals */);
 	}, []);
 
+	// UI for our stock summary
 	return (
 		<div>
 			<h1>Stock Summary</h1>
 			<div>
-				<table>
-					<tr>
-						<th>Stock Name</th>
-						<th>Starting</th>
-						<th>Lowest</th>
-						<th>Highest</th>
-						<th>Current</th>
-					</tr>
-					{/* Render Stock Data */}
-					{stockSummaryRef.current.map(function (s: Stock) {
-						return (
-							<tr>
-								<td>{s.code}</td>
-								<td>{s.starting}</td>
-								{/* Logic */}
-								<td>{s.lowest}</td>
-								<td>{s.highest}</td>
-								<td>{s.current}</td>
-							</tr>
-						);
-					})}
+				{/* Table containing our stock summary */}
+				<table className='table'>
+					<thead>
+						<tr>
+							<th>Stock Name</th>
+							<th>Starting</th>
+							<th>Lowest</th>
+							<th>Highest</th>
+							<th>Current</th>
+						</tr>
+					</thead>
+					<tbody>
+						{/* Render Stock Summary */}
+						{stockSummaryRef.current.map(function (s: Stock, key: number) {
+							return (
+								<tr key={key}>
+									<td>{s.code}</td>
+									<td>{s.starting}</td>
+									<td>{s.lowest}</td>
+									<td>{s.highest}</td>
+									<td>{s.current}</td>
+								</tr>
+							)
+						})}
+					</tbody>
 				</table>
 			</div>
 		</div>
