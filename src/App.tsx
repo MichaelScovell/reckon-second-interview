@@ -5,7 +5,6 @@ import Summary from './components/summary/Summary';
 function App() {
 	return (
 		<div className="App">
-			<h1>Test Heading</h1>
 			<Summary />
 		</div>
 	);
